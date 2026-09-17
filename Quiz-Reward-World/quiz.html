@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Quiz Reward World - Pro Max</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI';
+            background: #020617;
+            color: white;
+            padding: 12px;
+        }
+
+        .top {
+            max-width: 800px;
+            margin: auto;
+            background: #1e293b;
+            padding: 14px;
+            border-radius: 16px;
+            border: 2px solid #38bdf8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 8px;
+            z-index: 20;
+        }
+
+        .coin {
+            color: #facc15;
+            font-weight: bold;
+            font-size: 18px
+        }
+
+        .levels {
+            max-width: 800px;
+            margin: 15px auto;
+            display: flex;
+            gap: 10px;
+        }
+
+        .levels button {
+            flex: 1;
+            padding: 10px;
+            border-radius: 10px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            background: #1e293b;
+            color: #94a3b8;
+            border: 1px solid #334155
+        }
+
+        .levels button.active {
+            background: #38bdf8;
+            color: black
+        }
+
+        #box {
+            max-width: 800px;
+            margin: auto;
+            background: #1e293b;
+            border-radius: 16px;
+            padding: 18px;
+            border: 1px solid #334155
+        }
+
+        .timerBar {
+            height: 8px;
+            background: #334155;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 12px
+        }
+
+        #timerFill {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #22c55e, #38bdf8);
+            transition: width 1s linear
+        }
+
+        .q {
+            font-size: 19px;
+            margin-bottom: 12px;
+            min-height: 50px
+        }
+
+        .options button {
+            width: 100%;
+            padding: 12px;
+            margin: 6px 0;
+            border-radius: 12px;
+            border: none;
+            background: #0f172a;
+            color: white;
+            text-align: left;
+            cursor: pointer;
+            border-left: 4px solid #334155;
+            font-size: 15px
+        }
+
+        .options button:hover {
+            border-left-color: #38bdf8
+        }
+
+        .correct {
+            background: #166534 !important;
+            border-left-color: #22c55e !important
+        }
+
+        .wrong {
+            background: #7f1d1d !important;
+            border-left-color: #ef4444 !important
+        }
+
+        .lifelines {
+            display: flex;
+            gap: 8px;
+            margin: 12px 0
+        }
+
+        .lifelines button {
+            flex: 1;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px dashed #475569;
+            background: #0f172a;
+            color: white;
+            cursor: pointer
+        }
+
+        .lifelines button:disabled {
+            opacity: 0.3
+        }
+
+        #nextBtn {
+            width: 100%;
+            margin-top: 12px;
+            background: #38bdf8;
+            border: none;
+            padding: 13px;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            display: none
+        }
+
+        .reward {
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            display: none
+        }
+
+        .shop {
+            max-width: 800px;
+            margin: 15px auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px
+        }
+
+        .shop div {
+            background: #1e293b;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px dashed #475569;
+            text-align: center;
+            font-size: 13px
+        }
+
+        .shop div.unlocked {
+            border: 2px solid #22c55e;
+            background: #052e16;
+            color: white
+        }
+
+        .leader {
+            max-width: 800px;
+            margin: 15px auto;
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 14px;
+            border: 1px solid #334155
+        }
+
+        .confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: none
+        }
+    </style>
+</head>
+
+<body>
+    <div class="top">
+        <div>👤 <span id="userName">Player</span> | Lvl: <span id="lvlTxt">Easy</span></div>
+        <div class="coin">🔥<span id="streak">0</span> | 🪙 <span id="coins">0</span></div>
+    </div>
+
+    <div class="levels">
+        <button id="btnEasy" class="active" onclick="setLevel('easy')">Easy</button>
+        <button id="btnMed" onclick="setLevel('medium')">Medium</button>
+        <button id="btnHard" onclick="setLevel('hard')">Hard</button>
+    </div>
+
+    <div id="box">
+        <div class="timerBar">
+            <div id="timerFill"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:#94a3b8;margin-bottom:8px"><span>Q
+                <span id="qNum">1</span>/10</span><span>⏱️ <span id="timeLeft">15</span>s</span></div>
+        <div class="q" id="qText">Loading...</div>
+        <div class="options" id="qOptions"></div>
+
+        <div class="lifelines">
+            <button id="life5050" onclick="use5050()">50-50</button>
+            <button id="lifeSkip" onclick="useSkip()">Skip →</button>
+            <button id="lifeHint" onclick="useHint()">Hint 💡</button>
+        </div>
+
+        <button id="nextBtn" onclick="nextQ()">Next →</button>
+        <div class="reward" id="rewardBox"></div>
+    </div>
+
+    <div class="shop">
+        <div id="s50">🛍️ 50 Coins<br><b>Myntra 50% OFF</b><br><button onclick="buy('s50',50,'MYNTRA50')">Buy</button>
+        </div>
+        <div id="s100">👑 100 Coins<br><b>Premium Free</b><br><button onclick="buy('s100',100,'PREM100')">Buy</button>
+        </div>
+        <div id="s200">🔥 200 Coins<br><b>Amazon Gift</b><br><button onclick="buy('s200',200,'AMAZON200')">Buy</button>
+        </div>
+    </div>
+
+    <div class="leader">
+        <b>🏆 Daily Challenge & Leaderboard</b><br>
+        <div style="margin-top:8px;font-size:14px">
+            Today's Task: Score 50 Coins = Get 20 Bonus<br>
+            Your Best: <span id="best">0</span> Coins | Total Played: <span id="played">0</span>
+        </div>
+    </div>
+
+    <script>
+        // LOGIN
+        let name = localStorage.getItem('quizName') || prompt("Enter your name for Leaderboard:") || "Player";
+        localStorage.setItem('quizName', name);
+        document.getElementById('userName').innerText = name;
+
+        let coins = parseInt(localStorage.getItem('coins') || 0);
+        let best = parseInt(localStorage.getItem('best') || 0);
+        let played = parseInt(localStorage.getItem('played') || 0);
+        let level = 'easy', current = 0, streak = 0, timer, time = 15;
+        let bankEasy = [
+            { q: "15 x 4=?", a: ["50", "60", "65", "70"], c: 1 }, { q: "Capital of India?", a: ["Mumbai", "Delhi", "Kolkata", "Pune"], c: 1 }, { q: "12+28=?", a: ["40", "38", "42", "30"], c: 0 }, { q: "Red Planet?", a: ["Venus", "Jupiter", "Mars", "Saturn"], c: 2 }, { q: "100/5=?", a: ["15", "20", "25", "10"], c: 1 }, { q: "9x9=?", a: ["72", "81", "90", "99"], c: 1 }, { q: "Largest Ocean?", a: ["Atlantic", "Indian", "Arctic", "Pacific"], c: 3 }, { q: "√64=?", a: ["6", "7", "8", "9"], c: 2 }, { q: "25% of 200?", a: ["25", "50", "75", "100"], c: 1 }, { q: "1kg=? grams", a: ["100", "1000", "10", "10000"], c: 1 }, { q: "Sun rises in?", a: ["West", "East", "North", "South"], c: 1 }, { q: "H2O is?", a: ["Salt", "Water", "Sugar", "Oil"], c: 1 }, { q: "Triangle sides?", a: ["2", "3", "4", "5"], c: 1 }, { q: "Days in week?", a: ["5", "6", "7", "8"], c: 2 }, { q: "National Animal?", a: ["Lion", "Tiger", "Elephant", "Peacock"], c: 1 }
+        ];
+        let bankMed = [
+            { q: "(15x3)+12=?", a: ["45", "57", "60", "52"], c: 1 }, { q: "Square root of 144?", a: ["11", "12", "13", "14"], c: 1 }, { q: "Capital of Australia?", a: ["Sydney", "Melbourne", "Canberra", "Perth"], c: 2 }, { q: "Chemical of Gold Au, Silver?", a: ["Ag", "Fe", "Al", "Cu"], c: 0 }, { q: "15% of 200=?", a: ["30", "25", "35", "40"], c: 0 }, { q: "LCM of 4 and 6?", a: ["12", "6", "8", "24"], c: 0 }, { q: "Who wrote Vande Mataram?", a: ["Tagore", "Bankim", "Nehru", "Gandhi"], c: 1 }, { q: "Largest prime <20?", a: ["19", "17", "18", "20"], c: 0 }, { q: "Speed of light?", a: ["3x10^8 m/s", "3x10^6", "3x10^5", "3x10^7"], c: 0 }, { q: "GDP full form?", a: ["Gross Domestic Product", "Great Domestic", "Gross Daily", "Global"], c: 0 }
+        ];
+        let bankHard = [
+            { q: "Derivative of x²?", a: ["x", "2x", "x²", "2"], c: 1 }, { q: "Who discovered Electron?", a: ["Thomson", "Rutherford", "Bohr", "Newton"], c: 0 }, { q: "Integration of 1/x?", a: ["ln x", "x", "1/x²", "e^x"], c: 0 }, { q: "Capital of Kazakhstan?", a: ["Almaty", "Astana", "Tashkent", "Bishkek"], c: 1 }, { q: "pH of pure water?", a: ["6", "7", "8", "0"], c: 1 }, { q: "First law thermodynamics?", a: ["Energy conserved", "F=ma", "E=mc²", "PV=nRT"], c: 0 }, { q: "Binary of 10?", a: ["1010", "1001", "1100", "1000"], c: 0 }, { q: "Who painted Mona Lisa?", a: ["Van Gogh", "Da Vinci", "Picasso", "Michelangelo"], c: 1 }, { q: "Largest element?", a: ["Oganesson", "Uranium", "Hydrogen", "Iron"], c: 0 }, { q: "0! =?", a: ["0", "1", "Undefined", "Infinity"], c: 1 }
+        ];
+        let questions = [];
+
+        function getBank() { if (level === 'easy') return bankEasy; if (level === 'medium') return bankMed; return bankHard; }
+
+        function setLevel(l) { level = l; document.querySelectorAll('.levels button').forEach(b => b.classList.remove('active')); document.getElementById(l === 'easy' ? 'btnEasy' : l === 'medium' ? 'btnMed' : 'btnHard').classList.add('active'); document.getElementById('lvlTxt').innerText = l; current = 0; shuffle(); loadQ(); }
+
+        function shuffle() {
+            let b = [...getBank()].sort(() => 0.5 - Math.random()).slice(0, 10);
+            questions = b.map(qq => { let opts = qq.a.map((v, i) => ({ v, is: i === qq.c })).sort(() => 0.5 - Math.random()); let nc = opts.findIndex(o => o.is); return { q: qq.q, a: opts.map(o => o.v), correct: nc, hint: `Answer starts with "${opts[nc].v[0]}"` }; });
+        }
+
+        function loadQ() {
+            if (current >= 10) {
+                played++; localStorage.setItem('played', played); if (coins > best) { best = coins; localStorage.setItem('best', best); } document.getElementById('played').innerText = played; document.getElementById('best').innerText = best;
+                if (coins >= 50) { coins += 20; alert("🎉 Daily Challenge Completed! +20 Bonus!"); }
+                localStorage.setItem('coins', coins);
+                document.getElementById('qText').innerHTML = `🎉 ${level.toUpperCase()} Completed! Total Coins: ${coins}<br><br><button onclick="location.reload()" style="background:#38bdf8;padding:10px;border:none;border-radius:8px;font-weight:bold;">Play Again</button>`; document.getElementById('qOptions').innerHTML = ""; document.getElementById('nextBtn').style.display = "none"; clearInterval(timer); return;
+            }
+            document.getElementById('qNum').innerText = current + 1; document.getElementById('coins').innerText = coins; document.getElementById('streak').innerText = streak; document.getElementById('best').innerText = best; document.getElementById('played').innerText = played;
+            let q = questions[current]; document.getElementById('qText').innerText = `Q${current + 1}. ${q.q}`; let h = ""; q.a.forEach((o, i) => { h += `<button onclick="check(${i},this)">${o}</button>`; }); document.getElementById('qOptions').innerHTML = h; document.getElementById('nextBtn').style.display = "none"; document.getElementById('rewardBox').style.display = "none";
+            resetTimer();
+        }
+
+        function resetTimer() { clearInterval(timer); time = 15; document.getElementById('timeLeft').innerText = time; document.getElementById('timerFill').style.width = "100%"; timer = setInterval(() => { time--; document.getElementById('timeLeft').innerText = time; document.getElementById('timerFill').style.width = (time / 15 * 100) + "%"; if (time <= 0) { clearInterval(timer); autoWrong(); } }, 1000); }
+
+        function check(i, btn) { clearInterval(timer); let q = questions[current]; let all = document.querySelectorAll('.options button'); all.forEach(b => b.disabled = true); if (i === q.correct) { btn.classList.add('correct'); coins += 10; streak++; if (streak >= 3) { coins += 20; document.getElementById('rewardBox').innerText = `🔥 Streak x3! +10 +20 Bonus!`; } else document.getElementById('rewardBox').innerText = `✅ Correct +10!`; document.getElementById('rewardBox').style.display = "block"; document.getElementById('rewardBox').style.background = "#22c55e"; showConfetti(); } else { btn.classList.add('wrong'); all[q.correct].classList.add('correct'); streak = 0; document.getElementById('rewardBox').innerText = `❌ Answer: ${q.a[q.correct]}`; document.getElementById('rewardBox').style.display = "block"; document.getElementById('rewardBox').style.background = "#ef4444"; } localStorage.setItem('coins', coins); document.getElementById('coins').innerText = coins; document.getElementById('streak').innerText = streak; document.getElementById('nextBtn').style.display = "block"; }
+
+        function autoWrong() { let all = document.querySelectorAll('.options button'); all.forEach(b => b.disabled = true); let q = questions[current]; all[q.correct].classList.add('correct'); streak = 0; document.getElementById('rewardBox').innerText = `⏰ Time Up! Answer: ${q.a[q.correct]}`; document.getElementById('rewardBox').style.display = "block"; document.getElementById('rewardBox').style.background = "#ef4444"; document.getElementById('nextBtn').style.display = "block"; }
+
+        function nextQ() { current++; loadQ(); }
+
+        function use5050() { let q = questions[current]; let btns = document.querySelectorAll('.options button'); let wrong = []; btns.forEach((b, i) => { if (i !== q.correct) wrong.push(i); }); wrong.sort(() => 0.5 - Math.random()); btns[wrong[0]].style.display = "none"; btns[wrong[1]].style.display = "none"; document.getElementById('life5050').disabled = true; }
+
+        function useSkip() { clearInterval(timer); current++; loadQ(); document.getElementById('lifeSkip').disabled = true; }
+
+        function useHint() { alert(questions[current].hint); document.getElementById('lifeHint').disabled = true; }
+
+        function buy(id, cost, code) { if (coins >= cost) { coins -= cost; localStorage.setItem('coins', coins); document.getElementById('coins').innerText = coins; let el = document.getElementById(id); el.classList.add('unlocked'); el.innerHTML = `✅ Unlocked!<br><b>${code}</b><br><small>Copied!</small>`; navigator.clipboard.writeText(code); } else alert(`Need ${cost} coins! You have ${coins}`); }
+
+        function showConfetti() { /* simple effect */ document.body.style.background = "#052e16"; setTimeout(() => document.body.style.background = "#020617", 200); }
+
+        shuffle(); loadQ();
+    </script>
+</body>
+
+</html>
